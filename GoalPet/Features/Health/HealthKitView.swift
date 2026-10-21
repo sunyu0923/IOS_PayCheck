@@ -100,6 +100,7 @@ final class HealthKitController {
 @MainActor
 struct HealthKitView: View {
     @State private var controller: HealthKitController
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         _controller = State(initialValue: HealthKitController(service: HealthKitService()))
@@ -168,6 +169,10 @@ struct HealthKitView: View {
         }
         .navigationTitle("iPhone 健康数据")
         .onDisappear { controller.cancelAndClear() }
+        .onChange(of: scenePhase) { _, phase in
+            // Do not cancel on .inactive: the authorization sheet can cause that state.
+            if phase == .background { controller.cancelAndClear() }
+        }
     }
 
     @ViewBuilder

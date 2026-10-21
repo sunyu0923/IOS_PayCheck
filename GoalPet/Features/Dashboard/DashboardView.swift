@@ -23,12 +23,13 @@ struct DashboardView: View {
                             Label("一点一滴，都是进展", systemImage: "sparkle").font(.headline)
                             Spacer()
                         }
-                        PixelPetView(speciesID: PetCatalog.all.first?.id ?? "cat")
+                        PixelPetView(speciesID: PetCatalog.all.first(where: { model.unlockedPetIDs.contains($0.id) })?.id ?? "unknown")
                             .frame(height: 144).frame(maxWidth: .infinity)
                         Text("把小小坚持，养成新的伙伴。")
                             .font(.system(.title2, design: .rounded, weight: .bold))
-                        Text("宠物形象为图鉴演示，尚未接入孵化或奖励。")
+                        Text("累计 \(model.experience) XP · 已解锁 \(model.unlockedPetIDs.count) 位伙伴")
                             .font(.caption).foregroundStyle(.secondary)
+                        NavigationLink("查看每日任务与阶段进度") { GoalProgressView(model: model) }
                     }
                 }
 
