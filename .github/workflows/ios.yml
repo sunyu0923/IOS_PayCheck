@@ -1,0 +1,118 @@
+# Build/test iOS and separately build the watch companion; no deployment/signing secrets.
+name: iOS
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select an installed Xcode 16
+        run: |
+          set -euo pipefail
+          xcode_app="$(ruby -e '
+            apps = Dir.glob("/Applications/Xcode_16*.app")
+            abort "No Xcode 16 installation found on this runner" if apps.empty?
+            puts apps.max_by { |path| File.basename(path).scan(/\d+/).map(&:to_i) }
+          ')"
+          echo "DEVELOPER_DIR=$xcode_app/Contents/Developer" >> "$GITHUB_ENV"
+
+      - name: Choose an available iPhone simulator
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          simulator_id="$(xcrun simctl list devices available --json | ruby -rjson -e '
+            devices = JSON.parse(STDIN.read).fetch("devices")
+            iphones = devices.flat_map do |runtime, entries|
+              version = runtime.match(/\.iOS-(\d+)/)
+              next [] unless version && version[1].to_i >= 17
+              entries.select { |device| device["isAvailable"] && device["name"].start_with?("iPhone") }
+            end
+            abort "No available iPhone simulator with iOS 17 or newer" if iphones.empty?
+            device = iphones.find { |item| item["state"] == "Booted" } || iphones.first
+            warn "Selected #{device.fetch("name")} (#{device.fetch("udid")})"
+            puts device.fetch("udid")
+          ')"
+          echo "SIMULATOR_ID=$simulator_id" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project GoalPet.xcodeproj \
+            -scheme GoalPet \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -destination-timeout 120 \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Test
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -project GoalPet.xcodeproj \
+            -scheme GoalPet \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -destination-timeout 120 \
+            -derivedDataPath DerivedData \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+  watch-build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select an installed Xcode 16
+        run: |
+          set -euo pipefail
+          xcode_app="$(ruby -e '
+            apps = Dir.glob("/Applications/Xcode_16*.app")
+            abort "No Xcode 16 installation found on this runner" if apps.empty?
+            puts apps.max_by { |path| File.basename(path).scan(/\d+/).map(&:to_i) }
+          ')"
+          echo "DEVELOPER_DIR=$xcode_app/Contents/Developer" >> "$GITHUB_ENV"
+
+      - name: Build watch for generic simulator
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild build \
+            -project GoalPet.xcodeproj \
+            -scheme GoalPetWatch \
+            -configuration Debug \
+            -destination 'generic/platform=watchOS Simulator' \
+            -derivedDataPath DerivedDataWatch \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Build watch Release for generic device (unsigned)
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project GoalPet.xcodeproj \
+            -scheme GoalPetWatch \
+            -configuration Release \
+            -destination 'generic/platform=watchOS' \
+            -derivedDataPath DerivedDataWatchDevice \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO

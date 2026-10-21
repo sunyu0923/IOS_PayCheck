@@ -1,0 +1,18 @@
+{
+  "sourceLanguage" : "zh-Hans",
+  "strings" : {
+    "支出" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Expense" } } } },
+    "收入" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Income" } } } },
+    "首页" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } } } },
+    "记账" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Finance" } } } },
+    "健康" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Health" } } } },
+    "宠物" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Pets" } } } },
+    "我的" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Me" } } } },
+    "保存" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } } } },
+    "取消" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } } } },
+    "跟随系统" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } } } },
+    "浅色" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Light" } } } },
+    "深色" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Dark" } } } }
+  },
+  "version" : "1.0"
+}

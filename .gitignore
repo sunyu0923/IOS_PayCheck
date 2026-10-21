@@ -1,0 +1,11 @@
+# .gitignore — Ignore local Xcode state, build products, and simulator test results.
+.DS_Store
+DerivedData/
+build/
+*.xcresult/
+*.xcarchive/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+.build/
